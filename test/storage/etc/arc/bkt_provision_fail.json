@@ -1,0 +1,37 @@
+{
+  "name": "mock storage",
+
+  "provider": {
+    "vendor": "mock",
+    "data": { "bkt.Provision": "error", "bkt.SetTags": "error", "bkt.Destroyed": "false" }
+  },
+  
+  "storage": {
+    "buckets": [
+      {
+        "bucket": "test-bucket",
+        "region": "us-mock-1"
+      }
+    ],
+
+    "bucket_sets": [
+      {
+        "bucket_set": "test-bucket-set",
+        "buckets": [
+          {
+            "bucket": "mock-bucket-us-mock-1",
+            "region": "us-mock-1",
+            "role": "mock-replication",
+            "destination": "mock-bucket-us-mock-2"
+          },
+          {
+            "bucket": "mock-bucket-us-mock-2",
+            "region": "us-mock-2",
+            "role": "mock-replication",
+            "destination": "mock-bucket-us-mock-1"
+          }
+        ]
+      }
+    ]
+  }
+}

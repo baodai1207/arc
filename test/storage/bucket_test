@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Copyright (c) 2018, Cisco Systems
+# All rights reserved. See LICENSE file.
+#
+set -xe
+
+export AMP_ROOT="$PWD/storage"
+
+amp s bucket test-bucket config
+amp s bucket test-bucket info
+amp s bucket test-bucket create
+amp s bucket test-bucket destroy
+amp s bucket test-bucket provision
+amp s bucket test-bucket audit

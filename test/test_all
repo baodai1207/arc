@@ -49,6 +49,7 @@ function main() {
   ./run_tests "Arc Cli" cli
   ./run_tests "Database Service" database_service
   ./run_tests "Container Service" container_service
+  ./run_tests "Storage" storage
 }
 
 main "$@"

@@ -39,6 +39,7 @@ import (
 	"github.com/cisco/arc/pkg/route"
 
 	_ "github.com/cisco/arc/pkg/aws"
+	_ "github.com/cisco/arc/pkg/mock"
 )
 
 type storage struct {
