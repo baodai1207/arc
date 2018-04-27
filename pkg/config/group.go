@@ -24,56 +24,27 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-package aws
+package config
 
-import (
-	"github.com/aws/aws-sdk-go/service/iam"
+import "github.com/cisco/arc/pkg/msg"
 
-	"github.com/cisco/arc/pkg/config"
-	"github.com/cisco/arc/pkg/log"
-	"github.com/cisco/arc/pkg/resource"
-)
-
-type identityManagement struct {
-	*config.IdentityManagement
-	iam *iam.IAM
-
-	roleCache   *roleCache
-	policyCache *policyCache
-	groupCache  *groupCache
-	userCache   *userCache
+type Group struct {
+	Name_     string   `json:"group"`
+	Policies_ []string `json:"policies"`
 }
 
-func newIdentityManagement(cfg *config.IdentityManagement, iam *iam.IAM) (resource.ProviderIdentityManagement, error) {
-	log.Debug("Initializing AWS Identity Management")
-
-	i := &identityManagement{
-		IdentityManagement: cfg,
-		iam:                iam,
-	}
-
-	var err error
-	i.roleCache, err = newRoleCache(i)
-	if err != nil {
-		return nil, err
-	}
-	i.policyCache, err = newPolicyCache(i)
-	if err != nil {
-		return nil, err
-	}
-	i.groupCache, err = newGroupCache(i)
-	if err != nil {
-		return nil, err
-	}
-	return i, nil
+func (g *Group) Name() string {
+	return g.Name_
 }
 
-func (i *identityManagement) Audit(flags ...string) error {
-	if err := i.policyCache.audit("Policy"); err != nil {
-		return err
+func (g *Group) Policies() []string {
+	return g.Policies_
+}
+
+func (g *Group) Print() {
+	msg.Info("Group Config")
+	msg.Detail("%-20s\t%s", "name", g.Name())
+	for _, p := range g.Policies() {
+		msg.Detail("%-20s\t%s", "policy", p)
 	}
-	if err := i.roleCache.audit("Role"); err != nil {
-		return err
-	}
-	return nil
 }

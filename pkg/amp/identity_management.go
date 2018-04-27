@@ -47,6 +47,8 @@ type identityManagement struct {
 	amp                        *amp
 	policies                   []*policy
 	roles                      []*role
+	groups                     []*group
+	users                      []*user
 	providerIdentityManagement resource.ProviderIdentityManagement
 }
 
@@ -60,6 +62,9 @@ func newIdentityManagement(amp *amp, cfg *config.IdentityManagement) (*identityM
 	}
 	if cfg.Roles == nil {
 		return nil, fmt.Errorf("The Roles element is missing from the identity_management configuration")
+	}
+	if cfg.Groups == nil {
+		return nil, fmt.Errorf("The Groups element is missing from the identity_management configuration")
 	}
 
 	i := &identityManagement{
@@ -92,6 +97,21 @@ func newIdentityManagement(amp *amp, cfg *config.IdentityManagement) (*identityM
 		i.roles = append(i.roles, role)
 	}
 
+	for _, conf := range cfg.Groups {
+		group, err := newGroup(conf, i, prov)
+		if err != nil {
+			return nil, err
+		}
+		i.groups = append(i.groups, group)
+	}
+	for _, conf := range cfg.Users {
+		user, err := newUser(conf, i, prov)
+		if err != nil {
+			return nil, err
+		}
+		i.users = append(i.users, user)
+	}
+
 	return i, nil
 }
 
@@ -116,6 +136,26 @@ func (i *identityManagement) FindRole(name string) resource.Role {
 	for _, role := range i.roles {
 		if name == role.Name() {
 			return role
+		}
+	}
+	return nil
+}
+
+// FindGroup returns the group with the given name.
+func (i *identityManagement) FindGroup(name string) resource.Group {
+	for _, group := range i.groups {
+		if name == group.Name() {
+			return group
+		}
+	}
+	return nil
+}
+
+// FindUser returns the group with the given name.
+func (i *identityManagement) FindUser(name string) resource.User {
+	for _, user := range i.users {
+		if name == user.Name() {
+			return user
 		}
 	}
 	return nil
@@ -167,6 +207,38 @@ func (i *identityManagement) Route(req *route.Request) route.Response {
 			req.Flags().Append("Role")
 		}
 		return role.Route(req)
+	case "group":
+		req.Pop()
+		if req.Top() == "" {
+			i.Help()
+			return route.FAIL
+		}
+		group := i.FindGroup(req.Top())
+		if group == nil {
+			msg.Error("Unknown group %q.", req.Top())
+			return route.FAIL
+		}
+		if req.Command() == route.Audit {
+			aaa.NewAudit("Group")
+			req.Flags().Append("Group")
+		}
+		return group.Route(req)
+	case "user":
+		req.Pop()
+		if req.Top() == "" {
+			i.Help()
+			return route.FAIL
+		}
+		user := i.FindUser(req.Top())
+		if user == nil {
+			msg.Error("Unknown user %q.", req.Top())
+			return route.FAIL
+		}
+		if req.Command() == route.Audit {
+			aaa.NewAudit("User")
+			req.Flags().Append("User")
+		}
+		return user.Route(req)
 	default:
 		i.Help()
 		return route.FAIL
@@ -194,6 +266,11 @@ func (i *identityManagement) Route(req *route.Request) route.Response {
 		}
 		for _, r := range i.roles {
 			if resp := r.Route(req); resp != route.OK {
+				return route.FAIL
+			}
+		}
+		for _, g := range i.groups {
+			if resp := g.Route(req); resp != route.OK {
 				return route.FAIL
 			}
 		}

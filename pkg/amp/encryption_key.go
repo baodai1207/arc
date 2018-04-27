@@ -28,7 +28,7 @@ package amp
 
 import (
 	"fmt"
-	"os/user"
+	usr "os/user"
 	"time"
 
 	"github.com/cisco/arc/pkg/aaa"
@@ -182,7 +182,7 @@ func (k *encryptionKey) SetTags(t map[string]string) error {
 }
 
 func (k *encryptionKey) createSecurityTags() error {
-	u, err := user.Current()
+	u, err := usr.Current()
 	if err != nil {
 		return err
 	}

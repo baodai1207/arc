@@ -29,7 +29,7 @@ package amp
 import (
 	"fmt"
 	"os"
-	"os/user"
+	usr "os/user"
 	"time"
 
 	"github.com/cisco/arc/pkg/config"
@@ -83,7 +83,7 @@ func New(cfg *config.Amp) (*amp, error) {
 // Run starts amp processing. It returns 0 for success, 1 for failure.
 // Upon failure err might be set to a non-nil value.
 func (a *amp) Run() (int, error) {
-	u, err := user.Current()
+	u, err := usr.Current()
 	if err != nil {
 		return 1, err
 	}
@@ -154,9 +154,7 @@ func (a *amp) Route(req *route.Request) route.Response {
 		return a.keyManagement.Route(req)
 	case "identity_management":
 		return a.identityManagement.Route(req.Pop())
-	case "policy":
-		return a.identityManagement.Route(req)
-	case "role":
+	case "policy", "role", "group", "user":
 		return a.identityManagement.Route(req)
 	}
 

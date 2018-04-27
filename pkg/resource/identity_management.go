@@ -60,6 +60,9 @@ type IdentityManagement interface {
 	// FindRole returns the role with the given name.
 	FindRole(string) Role
 
+	// FindGroup returns the group with the given name.
+	FindGroup(string) Group
+
 	// ProviderIam provides access to the provider iam object.
 	ProviderIdentityManagement() ProviderIdentityManagement
 }

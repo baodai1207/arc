@@ -24,56 +24,44 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-package aws
+package resource
 
 import (
-	"github.com/aws/aws-sdk-go/service/iam"
-
 	"github.com/cisco/arc/pkg/config"
-	"github.com/cisco/arc/pkg/log"
-	"github.com/cisco/arc/pkg/resource"
+	"github.com/cisco/arc/pkg/route"
 )
 
-type identityManagement struct {
-	*config.IdentityManagement
-	iam *iam.IAM
-
-	roleCache   *roleCache
-	policyCache *policyCache
-	groupCache  *groupCache
-	userCache   *userCache
+type StaticUser interface {
+	Name() string
+	config.Printer
 }
 
-func newIdentityManagement(cfg *config.IdentityManagement, iam *iam.IAM) (resource.ProviderIdentityManagement, error) {
-	log.Debug("Initializing AWS Identity Management")
-
-	i := &identityManagement{
-		IdentityManagement: cfg,
-		iam:                iam,
-	}
-
-	var err error
-	i.roleCache, err = newRoleCache(i)
-	if err != nil {
-		return nil, err
-	}
-	i.policyCache, err = newPolicyCache(i)
-	if err != nil {
-		return nil, err
-	}
-	i.groupCache, err = newGroupCache(i)
-	if err != nil {
-		return nil, err
-	}
-	return i, nil
+// DynamicUser provides the interface to the dynamic portion of the user.
+type DynamicUser interface {
+	Loader
+	Creator
+	Destroyer
+	Provisioner
+	Auditor
+	Informer
 }
 
-func (i *identityManagement) Audit(flags ...string) error {
-	if err := i.policyCache.audit("Policy"); err != nil {
-		return err
-	}
-	if err := i.roleCache.audit("Role"); err != nil {
-		return err
-	}
-	return nil
+// User provides the resource interface used for the common user
+// object implemented in the amp package. It contains an IdentityManagement method used to
+// access its parent object.
+type User interface {
+	route.Router
+	StaticUser
+	DynamicUser
+	Helper
+
+	// IdentityManagement provides access to User's parent object.
+	IdentityManagement() IdentityManagement
+
+	// ProviderUser provides access to the provider user object.
+	ProviderUser() ProviderUser
+}
+
+type ProviderUser interface {
+	DynamicUser
 }
